@@ -7,4 +7,4 @@ services:
     volumes:
       - .:/home/user/app
     working_dir: /home/user/app
-    command: make test
+    command: bash -c "sleep infinity"
