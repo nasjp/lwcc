@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  lwcc:
+    build: .
+    image: lwcc:latest
+    platform: linux/x86_64
+    volumes:
+      - .:/home/user/app
+    working_dir: /home/user/app
+    command: make test
