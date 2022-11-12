@@ -28,7 +28,8 @@ void append_new_lvar(char *name, int len) {
 // なければNULLを返却する
 LVar *find_lvar(Token *token) {
   for (LVar *var = locals; var; var = var->next) {
-    if (var->len == token->len && !memcmp(token->str, var->name, var->len)) return var;
+    bool is = var->len == token->len && !memcmp(token->str, var->name, var->len);
+    if (is) return var;
   }
   return NULL;
 }
@@ -59,7 +60,8 @@ Node *new_node_lvar(int offset) {
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて真を返す
 // それ以外の場合には偽を返す
 bool consume(char *op) {
-  if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len)) return false;
+  bool is = token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len);
+  if (is) return false;
   token = token->next;
   return true;
 }
@@ -78,7 +80,8 @@ Token *consume_ident() {
 // 次のトークンが期待している記号のときには、トークンを1つ読み進める
 // それ以外の場合にはエラーを報告する
 void expect(char *op) {
-  if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len)) error_at(token->str, "'%s'ではありません", op);
+  bool is = token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len);
+  if (is) error_at(token->str, "'%s'ではありません", op);
   token = token->next;
 }
 
@@ -200,6 +203,5 @@ Node *primary() {
     }
   };
 
-  // そうでなければ数値のはず
   return new_node_num(expect_number());
 }
