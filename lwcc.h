@@ -79,11 +79,11 @@ extern char *user_input;
 // 現在着目しているトークン
 extern Token *token;
 
-// ローカル変数
-extern LVar *locals;
-
 // プログラムのノード群
 extern Node *code[100];
+
+// ローカル変数
+extern LVar *locals;
 
 // ------------------------- ユーティリティ
 // エラーを報告する

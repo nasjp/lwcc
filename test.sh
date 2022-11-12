@@ -47,10 +47,10 @@ assert 1 '1>=0;'
 assert 1 '1>=1;'
 assert 0 '1>=2;'
 
-assert 1 'a = 1;'
-assert 1 'a = 1; a;'
-assert 3 'a = 1; b = 2; a + b;'
-assert 1 'a = 1; b = 2; c = 3; c == a + b;'
-assert 0 'a = 1; b = 2; c = 2; d = c == a + b; d;'
+assert 1 'xxx = 1;'
+assert 1 'xxx = 1; xxx;'
+assert 3 'hoge = 1; huga = 2; hoge + huga;'
+assert 1 'foo = 1; bar = 2; baz = 3; baz == foo + bar;'
+assert 0 'foo = 1; bar = 2; baz = 2; result = baz == foo + bar; result;'
 
 echo OK

@@ -13,6 +13,26 @@ Node *mul();         // = unary ("*" unary | "/" unary)*
 Node *unary();       // = ("+" | "-")? primary
 Node *primary();     // = num | ident | "(" expr ")"
 
+void append_new_lvar(char *name, int len) {
+  LVar *lvar = calloc(1, sizeof(LVar));
+  lvar->next = locals;
+  lvar->name = name;
+  lvar->len = len;
+  int before_offset = 0;
+  if (locals) before_offset = locals->offset;
+  lvar->offset = before_offset + 8;
+  locals = lvar;
+}
+
+// トークンからローカル変数を検索し返却する
+// なければNULLを返却する
+LVar *find_lvar(Token *token) {
+  for (LVar *var = locals; var; var = var->next) {
+    if (var->len == token->len && !memcmp(token->str, var->name, var->len)) return var;
+  }
+  return NULL;
+}
+
 // 新しいノードを作成する
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
   Node *node = calloc(1, sizeof(Node));
@@ -24,17 +44,15 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
 
 // 新しいノードを作成する(整数用)
 Node *new_node_num(int val) {
-  Node *node = calloc(1, sizeof(Node));
-  node->kind = ND_NUM;
+  Node *node = new_node(ND_NUM, NULL, NULL);
   node->val = val;
   return node;
 }
 
-// 新しいノードを作成する(識別子用)
-Node *new_node_ident(char *ident) {
-  Node *node = calloc(1, sizeof(Node));
-  node->kind = ND_LVAR;
-  node->offset = (ident[0] - 'a' + 1) * 8;  // 今は8バイト固定
+// 新しいノードを作成する(ローカル変数用)
+Node *new_node_lvar(int offset) {
+  Node *node = new_node(ND_LVAR, NULL, NULL);
+  node->offset = offset;
   return node;
 }
 
@@ -78,13 +96,6 @@ int expect_number() {
 bool at_eof() {
   if (token->kind == TK_EOF) return true;
   return false;
-}
-
-LVar *find_lvar(Token *tok) {
-  for (LVar *var = locals; var; var = var->next)
-    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
-      return var;
-  return NULL;
 }
 
 void parse() { program(); }
@@ -179,8 +190,15 @@ Node *primary() {
   }
 
   Token *ident = consume_ident();
-
-  if (ident) return new_node_ident(ident->str);
+  if (ident) {
+    LVar *lvar = find_lvar(ident);
+    if (lvar) {
+      return new_node_lvar(lvar->offset);
+    } else {
+      append_new_lvar(ident->str, ident->len);
+      return new_node_lvar(locals->offset);
+    }
+  };
 
   // そうでなければ数値のはず
   return new_node_num(expect_number());
