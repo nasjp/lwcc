@@ -5,7 +5,7 @@ OBJS=$(SRCS:.c=.o)
 lwcc: $(OBJS)
 	$(CC) -o lwcc $(OBJS) $(LDFLAGS)
 
-$(OBJS):
+$(OBJS): lwcc.h
 
 test: lwcc
 	./test.sh

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "lwcc.h"
+
 // トークンの種類
 typedef enum {
   TK_RESERVED,  // 記号
