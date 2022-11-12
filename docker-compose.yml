@@ -5,6 +5,6 @@ services:
     image: lwcc:latest
     platform: linux/x86_64
     volumes:
-      - .:/home/user/app
-    working_dir: /home/user/app
+      - .:/home/app
+    working_dir: /home/app
     command: bash -c "sleep infinity"
