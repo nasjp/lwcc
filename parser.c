@@ -1,19 +1,17 @@
 #include "lwcc.h"
 
-// expr       = equality
-Node *expr();
-// equality   = relational ("==" relational | "!=" relational)*
-Node *equality();
-// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
-Node *relational();
-// add        = mul ("+" mul | "-" mul)*
-Node *add();
-// mul        = unary ("*" unary | "/" unary)*
-Node *mul();
-// unary      = ("+" | "-")? primary
-Node *unary();
-// primary    = num | "(" expr ")"
-Node *primary();
+void parse();
+
+void program();      // = stmt*
+Node *stmt();        // = expr ";"
+Node *expr();        // = assign
+Node *assign();      // = equality ("=" assign)?
+Node *equality();    // = relational ("==" relational | "!=" relational)*
+Node *relational();  // = add ("<" add | "<=" add | ">" add | ">=" add)*
+Node *add();         // = mul ("+" mul | "-" mul)*
+Node *mul();         // = unary ("*" unary | "/" unary)*
+Node *unary();       // = ("+" | "-")? primary
+Node *primary();     // = num | ident | "(" expr ")"
 
 // 新しいノードを作成する
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
@@ -32,22 +30,37 @@ Node *new_node_num(int val) {
   return node;
 }
 
+// 新しいノードを作成する(識別子用)
+Node *new_node_ident(char *ident) {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_LVAR;
+  node->offset = (ident[0] - 'a' + 1) * 8;  // 今は8バイト固定
+  return node;
+}
+
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて真を返す
 // それ以外の場合には偽を返す
 bool consume(char *op) {
-  if (token->kind != TK_RESERVED || strlen(op) != token->len ||
-      memcmp(token->str, op, token->len))
-    return false;
+  if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len)) return false;
   token = token->next;
   return true;
+}
+
+// 次のトークンが識別子のときには、トークンを1つ読み進めてTokenを返す
+// それ以外の場合にはNULLを返す
+Token *consume_ident() {
+  if (token->kind == TK_IDENT) {
+    Token *tmp = token;
+    token = token->next;
+    return tmp;
+  }
+  return NULL;
 }
 
 // 次のトークンが期待している記号のときには、トークンを1つ読み進める
 // それ以外の場合にはエラーを報告する
 void expect(char *op) {
-  if (token->kind != TK_RESERVED || strlen(op) != token->len ||
-      memcmp(token->str, op, token->len))
-    error_at(token->str, "'%s'ではありません", op);
+  if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len)) error_at(token->str, "'%s'ではありません", op);
   token = token->next;
 }
 
@@ -60,7 +73,34 @@ int expect_number() {
   return val;
 }
 
-Node *expr() { return equality(); }
+// 次のトークンが入力の終わりの場合は真を返す
+// それ以外の場合には偽を返す
+bool at_eof() {
+  if (token->kind == TK_EOF) return true;
+  return false;
+}
+
+void parse() { program(); }
+
+void program() {
+  int i = 0;
+  while (!at_eof()) code[i++] = stmt();
+  code[i] = NULL;
+}
+
+Node *stmt() {
+  Node *node = expr();
+  expect(";");
+  return node;
+}
+
+Node *expr() { return assign(); }
+
+Node *assign() {
+  Node *node = equality();
+  if (consume("=")) return new_node(ND_ASSIGN, node, assign());
+  return node;
+}
 
 Node *equality() {
   Node *node = relational();
@@ -125,12 +165,15 @@ Node *unary() {
 }
 
 Node *primary() {
-  // 次のトークンが"("なら、"(" expr ")"のはず
   if (consume("(")) {
     Node *node = expr();
     expect(")");
     return node;
   }
+
+  Token *ident = consume_ident();
+
+  if (ident) return new_node_ident(ident->str);
 
   // そうでなければ数値のはず
   return new_node_num(expect_number());

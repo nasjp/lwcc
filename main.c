@@ -1,8 +1,8 @@
 #include "lwcc.h"
 
-Token *token;
-
 char *user_input;
+Token *token;
+Node *code[100];
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -11,10 +11,9 @@ int main(int argc, char **argv) {
   }
 
   user_input = argv[1];
-
-  token = tokenize(argv[1]);
-  Node *node = expr();
-  generate(node);
+  tokenize();
+  parse();
+  generate();
 
   return 0;
 }
