@@ -22,7 +22,7 @@ struct Token {
   Token *next;     // 次の入力トークン
   int val;         // kindがTK_NUMの場合、その数値
   char *str;       // トークン文字列
-  int len;         // トークンの長さ
+  size_t len;      // トークンの長さ
 };
 
 // ローカル変数
@@ -31,7 +31,7 @@ typedef struct LVar LVar;
 struct LVar {
   LVar *next;  // 次の変数かNULL
   char *name;  // 変数の名前
-  int len;     // 名前の長さ
+  size_t len;  // 名前の長さ
   int offset;  // RBPからのオフセット
 };
 
