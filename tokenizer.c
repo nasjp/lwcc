@@ -10,6 +10,16 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
   return tok;
 }
 
+// 新しいトークン(識別子)を作成してcurに繋げる
+Token *new_token_ident(Token *cur, char *str) {
+  Token *tok = new_token(TK_IDENT, cur, str, 0);
+  int len = 1;
+  while (isalpha(str[len])) len++;
+  tok->len = len;
+  cur->next = tok;
+  return tok;
+}
+
 bool startswith(char *p, char *q) { return memcmp(p, q, strlen(q)) == 0; }
 
 void tokenize() {
@@ -44,8 +54,9 @@ void tokenize() {
       continue;
     }
 
-    if ('a' <= *p && *p <= 'z') {
-      cur = new_token(TK_IDENT, cur, p++, 1);
+    if (isalpha(*p)) {
+      cur = new_token_ident(cur, p);
+      p += cur->len;
       continue;
     }
 
