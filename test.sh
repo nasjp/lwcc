@@ -52,5 +52,9 @@ assert 1 'xxx = 1; xxx;'
 assert 3 'hoge = 1; huga = 2; hoge + huga;'
 assert 1 'foo = 1; bar = 2; baz = 3; baz == foo + bar;'
 assert 0 'foo = 1; bar = 2; baz = 2; result = baz == foo + bar; result;'
+assert 3 'xxx = 1; xxx = 2; xxx = 3;'
+assert 42 'x1 = 42;'
+assert 42 'x_ = 42;'
+assert 42 'x_1 = 42;'
 
 echo OK

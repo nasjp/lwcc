@@ -12,9 +12,11 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
 
 // 新しいトークン(識別子)を作成してcurに繋げる
 Token *new_token_ident(Token *cur, char *str) {
-  Token *tok = new_token(TK_IDENT, cur, str, 0);
+  Token *tok = calloc(1, sizeof(Token));
+  tok->kind = TK_IDENT;
+  tok->str = str;
   int len = 1;
-  while (isalpha(str[len])) len++;
+  while (isalpha(str[len]) || isdigit(str[len]) || str[len] == '_') len++;
   tok->len = len;
   cur->next = tok;
   return tok;
