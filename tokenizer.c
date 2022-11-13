@@ -62,7 +62,7 @@ void tokenize() {
       continue;
     }
 
-    error_at(token->str, "トークナイズできません");
+    error_at(p, "トークナイズできません");
   }
 
   new_token(TK_EOF, cur, p, 0);
