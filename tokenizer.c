@@ -26,11 +26,23 @@ Token *new_token_ident(Token *cur, char *str) {
   return tok;
 }
 
-bool startswith(char *p, char *q) { return memcmp(p, q, strlen(q)) == 0; }
+bool starts_with(char *p, char *q) { return memcmp(p, q, strlen(q)) == 0; }
 
 bool is_keyword(char *p, char *q) {
   int len = strlen(q);
-  return strncmp(p, "return", len) == 0 && !is_alnum(p[len]);
+  return strncmp(p, q, len) == 0 && !is_alnum(p[len]);
+}
+
+Token *tokenize_keyword(char **p, Token *token) {
+  char *keywords[] = {"return", "if", "else"};
+  for (size_t i = 0; i < (sizeof(keywords) / sizeof(char *)); i++) {
+    if (is_keyword(*p, keywords[i])) {
+      token = new_token(TK_RESERVED, token, *p, strlen(keywords[i]));
+      *p += token->len;
+      return token;
+    }
+  }
+  return token;
 }
 
 void tokenize() {
@@ -46,13 +58,13 @@ void tokenize() {
       continue;
     }
 
-    if (is_keyword(p, "return")) {
-      cur = new_token(TK_RESERVED, cur, p, 6);
-      p += 6;
+    char *q = p;
+    cur = tokenize_keyword(&p, cur);
+    if (q != p) {
       continue;
     }
 
-    if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")) {
+    if (starts_with(p, "==") || starts_with(p, "!=") || starts_with(p, "<=") || starts_with(p, ">=")) {
       cur = new_token(TK_RESERVED, cur, p, 2);
       p += 2;
       continue;

@@ -2,7 +2,7 @@
 
 char *user_input;
 Token *token;
-Node *code[100];
+Node *node;
 LVar *locals;
 
 int main(int argc, char **argv) {
@@ -17,4 +17,7 @@ int main(int argc, char **argv) {
   generate();
 
   return 0;
+}
+
+void run() {
 }

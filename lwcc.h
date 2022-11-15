@@ -53,6 +53,7 @@ typedef enum {
   ND_LVAR,    // ローカル変数
   ND_NUM,     // 整数
   ND_RETURN,  // return
+  ND_IF,      // if
 } NodeKind;
 
 typedef struct Node Node;
@@ -60,10 +61,17 @@ typedef struct Node Node;
 // 抽象構文木のノード
 struct Node {
   NodeKind kind;  // ノードの型
+  Node *next;     // Next node
   Node *lhs;      // 左辺
   Node *rhs;      // 右辺
-  int val;        // kindがND_NUMの場合のみ使う
-  int offset;     // kindがND_LVARの場合のみ使う
+
+  // if
+  Node *cond;
+  Node *then;
+  Node *els;
+
+  int val;     // kindがND_NUMの場合のみ使う
+  int offset;  // kindがND_LVARの場合のみ使う
 };
 
 // トークンをノードにパースする
@@ -81,7 +89,7 @@ extern char *user_input;
 extern Token *token;
 
 // プログラムのノード群
-extern Node *code[100];
+extern Node *node;
 
 // ローカル変数
 extern LVar *locals;

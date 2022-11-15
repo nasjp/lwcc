@@ -3,7 +3,7 @@
 void parse();
 
 void program();      // = stmt*
-Node *stmt();        // = expr ";" | "return" expr ";"
+Node *stmt();        // = expr ";" | "return" expr ";" | "if" "(" expr ")" stmt ("else" stmt)?
 Node *expr();        // = assign
 Node *assign();      // = equality ("=" assign)?
 Node *equality();    // = relational ("==" relational | "!=" relational)*
@@ -104,21 +104,38 @@ bool at_eof() {
 void parse() { program(); }
 
 void program() {
-  int i = 0;
-  while (!at_eof()) code[i++] = stmt();
-  code[i] = NULL;
+  Node head;
+  Node *cur = &head;
+
+  while (!at_eof()) {
+    cur->next = stmt();
+    cur = cur->next;
+  }
+
+  node = head.next;
 }
 
 Node *stmt() {
-  Node *node;
   if (consume("return")) {
-    node = new_node(ND_RETURN, expr(), NULL);
-  } else {
-    node = expr();
+    Node *node = new_node(ND_RETURN, expr(), NULL);
+    expect(";");
+    return node;
   }
 
-  expect(";");
+  if (consume("if")) {
+    Node *node = new_node(ND_IF, NULL, NULL);
+    expect("(");
+    node->cond = expr();
+    expect(")");
+    node->then = stmt();
+    if (consume("else")) {
+      node->els = stmt();
+    }
+    return node;
+  }
 
+  Node *node = expr();
+  expect(";");
   return node;
 }
 

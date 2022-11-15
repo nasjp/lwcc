@@ -1,5 +1,7 @@
 #include "lwcc.h"
 
+int label_i = 0;
+
 void gen_lval(Node *node) {
   if (node->kind != ND_LVAR) error("代入の左辺値が変数ではありません");
 
@@ -15,6 +17,20 @@ void gen(Node *node) {
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");
+    return;
+  }
+
+  if (node->kind == ND_IF) {
+    int i = label_i++;
+    gen(node->cond);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  .L.else%d\n", i);
+    gen(node->then);
+    printf("  jmp .L.end%d\n", i);
+    printf(".L.else%d:\n", i);
+    if (node->els) gen(node->els);
+    printf(".L.end%d:\n", i);
     return;
   }
 
@@ -98,11 +114,8 @@ void generate() {
   printf("  mov rbp, rsp\n");
   printf("  sub rsp, 208\n");
 
-  for (int i = 0; i < 100; i++) {
-    if (!code[i]) {
-      break;
-    }
-    gen(code[i]);
+  for (Node *n = node; n; n = n->next) {
+    gen(n);
     // 式の評価結果としてスタックに一つの値が残っている
     // はずなので、スタックが溢れないようにポップしておく
     printf("  pop rax\n");
