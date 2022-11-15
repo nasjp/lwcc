@@ -11,6 +11,11 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
+  if (node->kind == ND_BLOCK) {
+    for (Node *n = node->body; n; n = n->next) gen(n);
+    return;
+  }
+
   if (node->kind == ND_RETURN) {
     gen(node->lhs);
     printf("  pop rax\n");
@@ -114,7 +119,7 @@ void generate() {
   printf("  mov rbp, rsp\n");
   printf("  sub rsp, 208\n");
 
-  for (Node *n = node; n; n = n->next) {
+  for (Node *n = node->body; n; n = n->next) {
     gen(n);
     // 式の評価結果としてスタックに一つの値が残っている
     // はずなので、スタックが溢れないようにポップしておく

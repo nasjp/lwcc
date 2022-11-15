@@ -2,16 +2,17 @@
 
 void parse();
 
-void program();      // = stmt*
-Node *stmt();        // = expr ";" | "return" expr ";" | "if" "(" expr ")" stmt ("else" stmt)?
-Node *expr();        // = assign
-Node *assign();      // = equality ("=" assign)?
-Node *equality();    // = relational ("==" relational | "!=" relational)*
-Node *relational();  // = add ("<" add | "<=" add | ">" add | ">=" add)*
-Node *add();         // = mul ("+" mul | "-" mul)*
-Node *mul();         // = unary ("*" unary | "/" unary)*
-Node *unary();       // = ("+" | "-")? primary
-Node *primary();     // = num | ident | "(" expr ")"
+void program();         // = stmt*
+Node *stmt();           // = expr ";" | "{" compound_stmt | "return" expr ";" | "if" "(" expr ")" stmt ("else" stmt)?
+Node *compound_stmt();  // = stmt* "}"
+Node *expr();           // = assign
+Node *assign();         // = equality ("=" assign)?
+Node *equality();       // = relational ("==" relational | "!=" relational)*
+Node *relational();     // = add ("<" add | "<=" add | ">" add | ">=" add)*
+Node *add();            // = mul ("+" mul | "-" mul)*
+Node *mul();            // = unary ("*" unary | "/" unary)*
+Node *unary();          // = ("+" | "-")? primary
+Node *primary();        // = num | ident | "(" expr ")"
 
 void append_new_lvar(char *name, int len) {
   LVar *lvar = calloc(1, sizeof(LVar));
@@ -104,15 +105,8 @@ bool at_eof() {
 void parse() { program(); }
 
 void program() {
-  Node head;
-  Node *cur = &head;
-
-  while (!at_eof()) {
-    cur->next = stmt();
-    cur = cur->next;
-  }
-
-  node = head.next;
+  expect("{");
+  node = compound_stmt();
 }
 
 Node *stmt() {
@@ -134,8 +128,24 @@ Node *stmt() {
     return node;
   }
 
+  if (consume("{")) {
+    return compound_stmt();
+  }
+
   Node *node = expr();
   expect(";");
+  return node;
+}
+
+Node *compound_stmt() {
+  Node head;
+  Node *cur = &head;
+  while (!consume("}")) {
+    cur = cur->next = stmt();
+  }
+
+  Node *node = new_node(ND_BLOCK, NULL, NULL);
+  node->body = head.next;
   return node;
 }
 
